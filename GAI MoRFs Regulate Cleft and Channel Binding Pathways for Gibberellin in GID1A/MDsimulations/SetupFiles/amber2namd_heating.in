@@ -1,0 +1,89 @@
+
+
+# AMBER parameters- force field and input coordinates 
+parmfile ./ref.prmtop
+ambercoor ./ref-min.crd
+set temperature  300
+temperature $temperature
+# output
+outputName amber2namd_heat
+binaryOutput no
+
+# initial temperature/velocities
+# dcd output
+dcdFile amber2namd_heat.dcd
+dcdFreq 1000
+velDcdFile amber2namd_heat.vel.dcd
+velDcdFreq 1000
+
+# forcefield parameters modified for AMBER
+amber yes
+readexclusions     yes
+exclude            scaled1-4
+1-4scaling         0.83333333   #=1/1.2
+scnb               2
+parameters .prmtop
+
+# forcefield parameters
+# cutoffs
+switching on
+switchDist 8.0
+cutoff 10.0
+pairListDist 11
+
+# Integrator Parameters
+timestep            2.0          ;# 2fs/step
+rigidBonds          all          ;# needed for 2fs steps
+rigidTolerance     1e-08
+nonbondedFreq       1
+fullElectFrequency  2
+pairlistsPerCycle   2
+stepspercycle       20
+twoawayx            yes
+
+# Constant Temperature Control
+langevin            on            ;# langevin dynamics
+langevinDamping     3.0            ;# damping coefficient of 5/ps, goog for equilibration, but 1/ps is enough for MD
+##langevinTemp        $temperature  ;# random noise at this level
+langevinHydrogen    no            ;# don't couple bath to hydrogens
+
+
+cellBasisVector1    122.7835660     0.   0.
+cellBasisVector2    0    92.1024760     0. 
+cellBasisVector3    0                  0      109.1071250
+
+wrapAll             off
+wrapWater           off
+PME                 yes
+PMETolerance       1e-06
+PMEGridSpacing       1
+
+ldbUnloadOne      yes
+noPatchesOnOne      yes
+
+# Nose-Hoover Langevin piston method 
+##langevinPiston        on
+##langevinPistonTarget  1.01325      ;# pressure in bar -> 1 atm
+##langevinPistonPeriod  1000.         ;# oscillation period around 100 fs
+##langevinPistonDecay   1000.          ;# oscillation decay time of 50 fs
+##langevinPistonTemp    $temperature ;# coupled to heat bath
+
+# Constant Pressure Control (variable volume)
+##useGroupPressure      yes ;# needed for rigid bonds
+##useFlexibleCell       no  ;# no for water box, yes for membrane
+##useConstantArea       no  ;# no for water box, maybe for membrane
+
+restartname md_restart_heat
+restartfreq 10000
+binaryrestart yes
+firsttimestep      0      # reset frame counter
+
+
+#=========== constant pressure heating (by changing velocity) 
+for {set i 10} {$i < $temperature} {incr i 10} {
+  set tempr $i
+  langevinTemp $tempr
+  reinitvels   $tempr
+  run 10000
+}
+

@@ -1,0 +1,13 @@
+source /apps/pkg/ambertools/18/rhel7_u5/gnu/dat/leap/cmd/leaprc.ff14SB.redq
+source /apps/pkg/ambertools/18/rhel7_u5/gnu/dat/leap/cmd/leaprc.gaff
+loadamberparams /apps/pkg/ambertools/18/rhel7_u5/gnu/dat/leap/parm/frcmod.ionsjc_tip3p
+loadamberparams INH.frcmod
+loadoff INH.lib
+complex  = loadpdb prot_lig.pdb
+solvateBox complex TIP3PBOX 10
+charge complex
+addionsrand complex Na+ 31 Cl- 24
+charge complex
+saveamberparm complex ref.prmtop ref.inpcrd
+savepdb complex ref.pdb
+quit
