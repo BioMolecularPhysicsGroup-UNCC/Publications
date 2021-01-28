@@ -1,0 +1,22 @@
+#!/bin/bash -l
+#PBS -N AmberAmazing_Run
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=15:00:00 
+#PBS -e AmberMin_error.err 
+#PBS -o AmberMin.log
+#PBS -q copperhead 
+cd $PBS_O_WORKDIR
+
+module load ambertools
+#antechamber -i ligand.pdb -fi pdb -o ligand_H.mol2 -fo mol2 -c bcc -s 2 -nc -1
+
+cp ../tleap_all_in .
+cp ../amber_prep.sh .
+cp ../equilRAMD.pbs .
+
+name="GA4"
+echo "${name}"
+sed 's/GA3/'"${name}"'/g' tleap_all_in > tleap_all_in_2
+tleap -f tleap_all_in_2
+sh amber_prep.sh
+
